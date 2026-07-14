@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#21386E">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>Ficha de Captação · Imobiliária Portal</title>
 <script>
 /*!
@@ -468,6 +471,11 @@ document.querySelectorAll('.painel input, .painel textarea, .painel select').for
 });
 el('f_data').value = hoje();
 atualizar();
+</script>
+<script>
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 </body>
 </html>
