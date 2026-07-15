@@ -107,7 +107,7 @@
     .app { padding:0; }
     .paginas { display:flex !important; gap:0; }
     .pagina { box-shadow:none; width:100%; min-height:0; padding:28px 36px; page-break-after:always; page-break-inside:avoid; }
-    .moldura { min-height:0 !important; padding:18px 22px 8px; }
+    .moldura { min-height:920px !important; padding:18px 22px 8px; }
     .data-ass { margin-top:16px; }
     .ass-linha { margin-top:20px; }
     .rodape-f { position:static !important; margin-top:18px; }
@@ -208,7 +208,7 @@
 
       <div class="botoes">
         <button class="b-salvar" onclick="salvarFicha()">💾 Salvar ficha</button>
-        <button class="b-pdf" onclick="window.print()">📄 Gerar PDF (frente + verso)</button>
+        <button class="b-pdf" onclick="gerarPDF()">📄 Gerar PDF (frente + verso)</button>
         <button class="b-jpg" onclick="baixarJPG('pg-frente','frente')">🖼️ JPG da frente</button>
         <button class="b-jpg" onclick="baixarJPG('pg-verso','verso')">🖼️ JPG do verso</button>
         <button class="b-limpar" onclick="limpar()">🧹 Nova ficha em branco</button>
@@ -443,9 +443,26 @@ function limpar(){
   atualizar();
 }
 
+// ===== nome de arquivo (Ficha Captação - <cliente ou ref>) =====
+function nomeBase(){
+  const cliente = (el('f_nome').value || '').trim();
+  const ref = (el('f_ref').value || '').trim();
+  const id = cliente || ref || 'sem nome';
+  return ('Ficha Captação - ' + id).replace(/[\\/:*?"<>|]/g, '').trim();
+}
+
+// ===== PDF =====
+function gerarPDF(){
+  const tituloOriginal = document.title;
+  document.title = nomeBase();
+  const restaurar = () => { document.title = tituloOriginal; window.removeEventListener('afterprint', restaurar); };
+  window.addEventListener('afterprint', restaurar);
+  window.print();
+  setTimeout(restaurar, 3000); // fallback pra navegadores que não disparam afterprint
+}
+
 // ===== JPG =====
-function baixarJPG(idPag, nome){
-  const ref = el('f_ref').value || 'ficha';
+function baixarJPG(idPag, parte){
   const pag = el(idPag);
   // no celular a página fica escalada; captura sempre no tamanho real
   const zoomAntes = pag.style.zoom, emPrevia = document.body.classList.contains('modo-previa');
@@ -453,7 +470,7 @@ function baixarJPG(idPag, nome){
   if(!emPrevia && window.innerWidth <= 900){ document.body.classList.add('modo-previa'); }
   html2canvas(pag, {scale:2, backgroundColor:'#ffffff'}).then(cv=>{
     const a = document.createElement('a');
-    a.download = `captacao-ref${ref}-${nome}.jpg`;
+    a.download = `${nomeBase()} (${parte}).jpg`;
     a.href = cv.toDataURL('image/jpeg', 0.93);
     a.click();
   }).finally(()=>{
